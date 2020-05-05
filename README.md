@@ -101,4 +101,4 @@ popup) that ask the user to turn it on.
 
 Here is what it looks like : 
 
-![Screenshot_turn_bluetooth_on](image/Screenshot_turn_bluetooth_on.png)
+<img src="image/Screenshot_turn_bluetooth_on.png" width="350" title="hover text">
