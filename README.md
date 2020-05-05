@@ -6,7 +6,7 @@ Then, I integrated BLE with these steps :
 
 ## Integrating Bluetooth Low Energy (BLE)
 
-I followed the official documentation of Android to do this.(https://developer.android.com/guide/topics/connectivity/bluetooth-le) 
+I followed the official [documentation](https://developer.android.com/guide/topics/connectivity/bluetooth-le) of Android to do this.
 
 ### Adding the right permissions to the app manifest
 
@@ -56,7 +56,11 @@ public class MainActivity extends AppCompatActivity {
                 }
             }, 1000);
         }
+
     }
 }
 ```
+
+Check what it does if the device doesn't support the BLE with this video
+[link to Google!](https://github.com/clementh59/AndroidMotorControlBLE/video/dont_support_ble.mp4)
 
