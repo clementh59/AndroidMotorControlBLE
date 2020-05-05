@@ -20,7 +20,7 @@ public class MainActivity extends AppCompatActivity {
 
         //If the phone doesn't support BLE
         if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
-            //Then I show a Toast that indicate the user that it doesn't support bluetooth
+            //Then I show a Toast that indicate the user that it doesn't support BLE
             Toast.makeText(this, "Le BLE n'est pas supporté sur cet appareil!", Toast.LENGTH_SHORT).show();
 
             //After, that, I wait 1s to call the finish function that terminate the app
