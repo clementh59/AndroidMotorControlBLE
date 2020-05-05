@@ -278,7 +278,7 @@ Here is the result that I got :
 
 So I found the esp32 BLE Server that I called "MA VOITURE".
 
-No I implement the connection.
+No I need implement the bluetooth connection to the device.
 
 I modify the activity_main.xml to have a simple Layout that ask me the
 name of the device I want to connect to and a button connect.
@@ -286,3 +286,50 @@ name of the device I want to connect to and a button connect.
 <p align="center">
     <img src="image/simple_layout.PNG" width="200" title="hover text">
 </p>
+
+Then I modify the code of my MainActivity to add interaction with my UI
+elements
+
+```java
+public class MainActivity extends AppCompatActivity {
+    
+    //some stuff
+    
+    private EditText edit_text_name_target;//this is a reference to my UI editText
+    private Button button_connect;//this is a reference to my UI button
+    
+    //some stuff
+    
+     private void initComponents(){
+        edit_text_name_target = findViewById(R.id.edit_text_name_target);
+        button_connect = findViewById(R.id.btn_connect);
+        button_connect.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //When i click on the button, this function is called
+
+                String deviceName = edit_text_name_target.getText().toString();//I get the text of the editText
+                BluetoothDevice deviceSearched = null;
+                Log.i("DEVICE", "I m searching a device with name equals " + deviceName);
+                for (BluetoothDevice device:bluetoothDevicesScanned) {
+                    if (deviceName.equals(device.getName())){
+                        deviceSearched = device;
+                    }
+                }
+
+                if (deviceSearched == null){
+                    Toast.makeText(view.getContext(), "Aucun appareil BLE avec ce nom trouvé", Toast.LENGTH_SHORT).show();
+                }else{
+                    Toast.makeText(view.getContext(), "Un appareil a été trouvé", Toast.LENGTH_SHORT).show();
+                    connectToDevice(deviceSearched);//I connect to this bluetooth device
+                }
+
+            }
+        });
+    }
+
+}
+
+```
+
+

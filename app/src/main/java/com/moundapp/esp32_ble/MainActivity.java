@@ -2,23 +2,33 @@ package com.moundapp.esp32_ble;
 
 import android.Manifest;
 import android.annotation.TargetApi;
+import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGatt;
+import android.bluetooth.BluetoothGattCallback;
+import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothManager;
+import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Handler;
+import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -40,6 +50,14 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean mScanning = false;//variable to know if I am currently scanning or not
 
+    private BluetoothLeService bluetoothLeService = new BluetoothLeService();
+
+
+    /***        UI variables        ****/
+
+    private EditText edit_text_name_target;//this is a reference to my UI editText
+    private Button button_connect;//this is a reference to my UI button
+
     //callback that will be called when I find a device
     private BluetoothAdapter.LeScanCallback leScanCallback =
             new BluetoothAdapter.LeScanCallback() {
@@ -50,8 +68,10 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void run() {
                             //When I find a device, I add it to my bluetoothScannedList
-                            bluetoothDevicesScanned.add(device);
-                            Log.i("New device scanned",""+device.getName());
+                            if (!bluetoothDevicesScanned.contains(device)) {
+                                bluetoothDevicesScanned.add(device);
+                                Log.i("New device scanned", "" + device.getName());
+                            }
                         }
                     });
                 }
@@ -65,6 +85,8 @@ public class MainActivity extends AppCompatActivity {
         quitteSiLapplicationNeSupportePasLeBLE();
 
         initialiseLeBluetooth();
+
+        initComponents();
     }
 
     private void quitteSiLapplicationNeSupportePasLeBLE(){
@@ -125,7 +147,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void startBluetoothScan(){
-        bluetoothDevicesScanned = new ArrayList<>();//initalisation of my list
+        bluetoothDevicesScanned = new ArrayList<>();//initialisation of my list
         if (askPermissionsOfUser()){
             Log.i("device","start the scan");
             bluetoothAdapter.startLeScan(leScanCallback);//I launch the scan
@@ -174,5 +196,58 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
+
+    private void connectToDevice(BluetoothDevice device){
+        bluetoothLeService.connectToDevice(getApplicationContext(),device);
+        goToCommandView();
+    }
+
+    /***********            UI              **********/
+
+    private void initComponents(){
+        edit_text_name_target = findViewById(R.id.edit_text_name_target);
+        button_connect = findViewById(R.id.btn_connect);
+        button_connect.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //When i click on the button, this function is called
+
+                String deviceName = edit_text_name_target.getText().toString();//I get the text of the editText
+                BluetoothDevice deviceSearched = null;
+                Log.i("DEVICE", "I m searching a device with name equals " + deviceName);
+                for (BluetoothDevice device:bluetoothDevicesScanned) {
+                    if (deviceName.equals(device.getName())){
+                        deviceSearched = device;
+                    }
+                }
+
+                if (deviceSearched == null){
+                    Toast.makeText(view.getContext(), "Aucun serveur BLE avec ce nom trouvé", Toast.LENGTH_SHORT).show();
+                }else{
+                    Toast.makeText(view.getContext(), "Un appareil a été trouvé", Toast.LENGTH_SHORT).show();
+                    connectToDevice(deviceSearched);//I connect to this bluetooth device
+                }
+
+            }
+        });
+    }
+
+    private void goToCommandView(){
+        setContentView(R.layout.communicate_page);
+        findViewById(R.id.btn_avancer).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                bluetoothLeService.envoyerCommande((byte)18);
+            }
+        });
+        findViewById(R.id.btn_reculer).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                bluetoothLeService.envoyerCommande((byte)26);
+            }
+        });
+    }
+
 
 }
