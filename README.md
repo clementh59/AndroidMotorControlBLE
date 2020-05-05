@@ -61,6 +61,6 @@ public class MainActivity extends AppCompatActivity {
 }
 ```
 
-Check what it does if the device doesn't support the BLE with this video
-[link to Google!](video/dont_support_ble.mp4)
+Check what it does if the device doesn't support the BLE with this
+[video](video/dont_support_ble.mp4)
 
