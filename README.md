@@ -228,7 +228,7 @@ public class MainActivity extends AppCompatActivity {
 }
 ```
 
-Now I can launch the scan.
+Now I can launch the scan with these functions.
 
 ```java
 public class MainActivity extends AppCompatActivity {
@@ -274,4 +274,15 @@ Here is the result that I got :
 
 <p align="center">
     <img src="image/console_devices_scanned.PNG" height="350" title="hover text">
+</p>
+
+So I found the esp32 BLE Server that I called "MA VOITURE".
+
+No I implement the connection.
+
+I modify the activity_main.xml to have a simple Layout that ask me the
+name of the device I want to connect to and a button connect.
+
+<p align="center">
+    <img src="image/simple_layout.PNG" width="200" title="hover text">
 </p>
