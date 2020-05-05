@@ -62,5 +62,43 @@ public class MainActivity extends AppCompatActivity {
 ```
 
 Check what it does if the device doesn't support the BLE with this
-[video](video/dont_support_ble.mp4)
+[video!](video/dont_support_ble.mp4)
 
+### Adding the Bluetooth Scan functionnality
+
+To interact with other BLE devices, you need to connect with them. But
+first, you need to find them (thanks to the scan).
+
+```java
+public class MainActivity extends AppCompatActivity {
+
+    /*The BluetoothAdapter is required for any and all Bluetooth activity.
+    The BluetoothAdapter represents the device's own Bluetooth adapter (the Bluetooth radio).
+    There's one Bluetooth adapter for the entire system, and your application can interact with
+    it using this object*/
+    private BluetoothAdapter bluetoothAdapter;
+
+    //some stuff..
+
+    private void initialiseLeBluetooth(){
+        // Initializes Bluetooth adapter.
+        final BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
+        bluetoothAdapter = bluetoothManager.getAdapter();
+
+        // Ensures Bluetooth is available on the device and it is enabled. If not,
+        // displays a dialog requesting user permission to enable Bluetooth.
+        if (bluetoothAdapter == null || !bluetoothAdapter.isEnabled()) {
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+        }
+
+    }
+}
+``` 
+
+So now, if the Bluetooth isn't activated we display a dialog (a sort of
+popup) that ask the user to turn it on.
+
+Here is what it looks like : 
+
+![Screenshot_turn_bluetooth_on](image/Screenshot_turn_bluetooth_on.png)
