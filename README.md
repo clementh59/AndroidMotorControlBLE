@@ -101,4 +101,6 @@ popup) that ask the user to turn it on.
 
 Here is what it looks like : 
 
-<img src="image/Screenshot_turn_bluetooth_on.png" width="350" title="hover text">
+<p align="center">
+    <img src="image/Screenshot_turn_bluetooth_on.png" width="350" title="hover text">
+</p>
