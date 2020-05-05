@@ -104,3 +104,59 @@ Here is what it looks like :
 <p align="center">
     <img src="image/Screenshot_turn_bluetooth_on.png" width="350" title="hover text">
 </p>
+
+But when the dialog appears, we have two solutions : 
+
+- The user clicks authorize and everything is OK
+- The user clicks refuse and we need to handle that situation!
+
+To handle that, we need to deal with Activity results. Indeed, when we
+call `startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);`, we
+start a new Activity, and to get the result of the Activity (If the user
+clicked on authorize or refuse), we need to override the function
+onActivityResult. Indeed, if you call startActivityForResult(...,
+REQUEST_CODE), when the activity called finishes, the function
+onActivityResult is called with the REQUEST_CODE as parameter and the
+result of the activity. Thanks to that, we will know if the user
+activates or not the bluetooth.
+
+```java
+public class MainActivity extends AppCompatActivity {
+
+    /*The REQUEST_ENABLE_BT constant passed to startActivityForResult(android.content.Intent, int)
+    is a locally-defined integer (which must be greater than 0) that the system passes back to you in your
+    onActivityResult(int, int, android.content.Intent) implementation as the requestCode parameter.*/
+    private static int REQUEST_ENABLE_BT = 15;
+
+    //some stuff
+
+    private void initialiseLeBluetooth(){
+        
+        //some stuff
+        
+        if (bluetoothAdapter == null || !bluetoothAdapter.isEnabled()) {
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            //I start a new Activity that is a dialog that ask the user to activate the bluetooth
+            //When this activity finishes, the function onActivityResult will be called with the parameter REQUEST_ENABLE_BT as requestCode
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+        }
+
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        //If the request
+        if (requestCode == REQUEST_ENABLE_BT){//if the result correspond to the dialog "Turn your bluetooth on"
+            if (resultCode == RESULT_OK){
+                //The user turn the bluetooth On
+            }else{
+                //The user hasn't turn the bluetooth on
+                finish();//I finish the app if he doesn't want to turn bluetooth on
+            }
+        }
+
+    }
+}
+```
