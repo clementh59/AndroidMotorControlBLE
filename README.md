@@ -10,7 +10,7 @@ I followed the official documentation of Android to do this.(https://developer.a
 
 ### Adding the right permissions to the app manifest
 
-I added the 3 following lines
+I add the 3 following lines
 
 ```xml
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.moundapp.esp32_ble">
@@ -21,3 +21,27 @@ I added the 3 following lines
 
 </manifest>
 ```
+
+### Check if the phone supports BLE
+
+Then, I implement a function that quit the app if the phone doesn't
+support BLE. I call her in the onCreate of my MainActivity (This is the
+first function called when the application is created)
+
+```java
+public class MainActivity extends AppCompatActivity {
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+            Toast.makeText(this, "Le BLE n'est pas supporté sur cet appareil!", Toast.LENGTH_SHORT).show();
+            finish();
+        }
+
+    }
+}
+```
+
