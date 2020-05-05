@@ -10,7 +10,7 @@ I followed the official documentation of Android to do this.(https://developer.a
 
 ### Adding the right permissions to the app manifest
 
-```
+```xml
 <uses-permission android:name="android.permission.BLUETOOTH"/>
 <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
 <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
