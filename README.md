@@ -17,8 +17,9 @@ I add the 3 following lines
     
     <uses-permission android:name="android.permission.BLUETOOTH"/>
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
-
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    
 </manifest>
 ```
 
@@ -111,7 +112,7 @@ But when the dialog appears, we have two solutions :
 - The user clicks refuse and we need to handle that situation!
 
 To handle that, we need to deal with Activity results. Indeed, when we
-call `startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);`, we
+call `startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT)` , we
 start a new Activity, and to get the result of the Activity (If the user
 clicked on authorize or refuse), we need to override the function
 onActivityResult. Indeed, if you call startActivityForResult(...,
@@ -151,6 +152,7 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == REQUEST_ENABLE_BT){//if the result correspond to the dialog "Turn your bluetooth on"
             if (resultCode == RESULT_OK){
                 //The user turn the bluetooth On
+                //everything is ok
             }else{
                 //The user hasn't turn the bluetooth on
                 finish();//I finish the app if he doesn't want to turn bluetooth on
@@ -160,3 +162,116 @@ public class MainActivity extends AppCompatActivity {
     }
 }
 ```
+
+Now I need a last thing before I can run the scan. Indeed, I need to
+ckeck if I have all the permissions. So I made/override these 2
+functions : askPermissionsOfUser and onRequestPermissionsResult
+
+```java
+public class MainActivity extends AppCompatActivity {
+
+    private static final int PERMISSION_REQUEST_COARSE_LOCATION = 1;
+
+    //some stuff
+    
+    private void startBluetoothScan(){
+        bluetoothDevicesScanned = new ArrayList<>();//initalisation of my list
+        if (askPermissionsOfUser()){
+            //I can launch the scan
+        }
+    }
+
+    /**
+     *
+     * @return true if permissions are already granted, otherwise return else
+     */
+    private boolean askPermissionsOfUser(){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            // Android M Permission check 
+            if (this.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED){
+                final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle("This app needs location access fro BLE");
+                builder.setMessage("Please grant location access so this app can detect devices.");
+                builder.setPositiveButton(android.R.string.ok, null);
+                builder.setOnDismissListener(new DialogInterface.OnDismissListener(){
+                    public void onDismiss(DialogInterface dialog) {
+                        requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, PERMISSION_REQUEST_COARSE_LOCATION);
+                    }
+                });
+                builder.show();
+                return false;
+            }
+        }
+
+        return true;
+
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[],
+                                           int[] grantResults) {
+        switch (requestCode) {
+            case PERMISSION_REQUEST_COARSE_LOCATION: {
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    //everything is OK
+                    //I can launch the scan
+                } else {
+                    finish();//Else i finish the app
+                }
+                return;
+            }
+        }
+    }
+
+    
+}
+```
+
+Now I can launch the scan.
+
+```java
+public class MainActivity extends AppCompatActivity {
+
+    private static final int PERMISSION_REQUEST_COARSE_LOCATION = 1;
+
+    //A list that contains the list of bluetooth Devices that I found
+    private ArrayList<BluetoothDevice> bluetoothDevicesScanned;
+    
+    private boolean mScanning = false;//variable to know if I am currently scanning or not
+
+    //some stuff
+
+    private void startBluetoothScan(){
+        bluetoothDevicesScanned = new ArrayList<>();//initalisation of my list
+        if (askPermissionsOfUser()){
+            Log.i("device","start the scan");
+            bluetoothAdapter.startLeScan(leScanCallback);//I start the scan
+        }
+    }
+
+    private BluetoothAdapter.LeScanCallback leScanCallback =
+            new BluetoothAdapter.LeScanCallback() {
+                @Override
+                public void onLeScan(final BluetoothDevice device, int rssi,
+                                     byte[] scanRecord) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            //When I find a device, I add it to my bluetoothScannedList
+                            bluetoothDevicesScanned.add(device);
+                            Log.i("New device scanned",""+device.getName());
+                        }
+                    });
+                }
+            };
+
+}
+
+```
+
+Here is the result that I got : 
+
+<p align="center">
+    <img src="image/console_devices_scanned.PNG" height="350" title="hover text">
+</p>

@@ -1,18 +1,28 @@
 package com.moundapp.esp32_ble;
 
+import android.Manifest;
+import android.annotation.TargetApi;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Handler;
 import android.support.annotation.Nullable;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+
 public class MainActivity extends AppCompatActivity {
+
+    private static final int PERMISSION_REQUEST_COARSE_LOCATION = 1;
 
     /*The REQUEST_ENABLE_BT constant passed to startActivityForResult(android.content.Intent, int)
     is a locally-defined integer (which must be greater than 0) that the system passes back to you in your
@@ -24,6 +34,28 @@ public class MainActivity extends AppCompatActivity {
     There's one Bluetooth adapter for the entire system, and your application can interact with
     it using this object*/
     private BluetoothAdapter bluetoothAdapter;
+
+    //A list that contains the list of bluetooth Devices that I found
+    private ArrayList<BluetoothDevice> bluetoothDevicesScanned;
+
+    private boolean mScanning = false;//variable to know if I am currently scanning or not
+
+    //callback that will be called when I find a device
+    private BluetoothAdapter.LeScanCallback leScanCallback =
+            new BluetoothAdapter.LeScanCallback() {
+                @Override
+                public void onLeScan(final BluetoothDevice device, int rssi,
+                                     byte[] scanRecord) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            //When I find a device, I add it to my bluetoothScannedList
+                            bluetoothDevicesScanned.add(device);
+                            Log.i("New device scanned",""+device.getName());
+                        }
+                    });
+                }
+            };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,7 +98,11 @@ public class MainActivity extends AppCompatActivity {
             //I start a new Activity that is a dialog that ask the user to activate the bluetooth
             //When this activity finishes, the function onActivityResult will be called with the parameter REQUEST_ENABLE_BT as requestCode
             startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+        }else{
+            //we start the bluetooth scan!
+            startBluetoothScan();
         }
+
 
     }
 
@@ -78,6 +114,8 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == REQUEST_ENABLE_BT){//if the result correspond to the dialog "Turn your bluetooth on"
             if (resultCode == RESULT_OK){
                 //The user turn the bluetooth On
+                //everything is ok
+                startBluetoothScan();
             }else{
                 //The user hasn't turn the bluetooth on
                 finish();//I finish the app if he doesn't want to turn bluetooth on
@@ -85,4 +123,56 @@ public class MainActivity extends AppCompatActivity {
         }
 
     }
+
+    private void startBluetoothScan(){
+        bluetoothDevicesScanned = new ArrayList<>();//initalisation of my list
+        if (askPermissionsOfUser()){
+            Log.i("device","start the scan");
+            bluetoothAdapter.startLeScan(leScanCallback);//I launch the scan
+        }
+    }
+
+    /**
+     *
+     * @return true if permissions are already granted, otherwise else
+     */
+    private boolean askPermissionsOfUser(){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            // Android M Permission check 
+            if (this.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED){
+                final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle("This app needs location access fro BLE");
+                builder.setMessage("Please grant location access so this app can detect devices.");
+                builder.setPositiveButton(android.R.string.ok, null);
+                builder.setOnDismissListener(new DialogInterface.OnDismissListener(){
+                    public void onDismiss(DialogInterface dialog) {
+                        requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, PERMISSION_REQUEST_COARSE_LOCATION);
+                    }
+                });
+                builder.show();
+                return false;
+            }
+        }
+
+        return true;
+
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[],
+                                           int[] grantResults) {
+        switch (requestCode) {
+            case PERMISSION_REQUEST_COARSE_LOCATION: {
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    //everything is OK
+                    bluetoothAdapter.startLeScan(leScanCallback);
+                } else {
+                    finish();//Else i finish the app
+                }
+                return;
+            }
+        }
+    }
+
 }
