@@ -1,5 +1,6 @@
 package com.moundapp.esp32_ble;
 
+import android.app.Activity;
 import android.app.Service;
 import android.arch.core.util.Function;
 import android.bluetooth.BluetoothAdapter;
@@ -14,6 +15,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.IBinder;
 import android.util.Log;
+import android.widget.EditText;
+import android.widget.TextView;
 
 import java.util.UUID;
 
@@ -33,7 +36,13 @@ public class BluetoothLeService extends Service {
 
     private static BluetoothGattCharacteristic commandCharacteristic;
 
-    /** ui  **/
+    private Activity activity;
+    private TextView receivedValues;
+
+    public BluetoothLeService(TextView tv, Activity a) {
+        this.receivedValues = tv;
+        activity = a;
+    }
 
     // Various callback methods defined by the BLE API.
     public final BluetoothGattCallback gattCallback =
@@ -58,9 +67,14 @@ public class BluetoothLeService extends Service {
                     if (status == BluetoothGatt.GATT_SUCCESS) {
                         Log.i(TAG, "service discovered");
                         BluetoothGattCharacteristic characteristic = gatt.getService(UUID_SERVICE).getCharacteristic(UUID_CHARACTERISTIC);
+                        //I authorize notifications
                         gatt.setCharacteristicNotification(characteristic, true);
+                        // 0x2902 org.bluetooth.descriptor.gatt.client_characteristic_configuration.xml
+                        UUID uuid = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
+                        BluetoothGattDescriptor descriptor = characteristic.getDescriptor(uuid);
+                        descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+                        gatt.writeDescriptor(descriptor);
                         gatt.writeCharacteristic(characteristic);
-                        gatt.readCharacteristic(characteristic);
                         commandCharacteristic = characteristic;
                     } else {
                         Log.w(TAG, "onServicesDiscovered received: " + status);
@@ -77,7 +91,16 @@ public class BluetoothLeService extends Service {
 
                 @Override
                 public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
+                    final BluetoothGattCharacteristic characteristic1 = characteristic;
                     Log.i(TAG,"Characteristic changed : "+characteristic.getUuid() + " " + characteristic.getStringValue(0));
+                    final String text = "La valeur lue est ";
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            receivedValues.setText(text+String.valueOf(characteristic1.getValue()));
+                        }
+                    });
+
                 }
 
                 @Override

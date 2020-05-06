@@ -25,6 +25,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -50,7 +51,7 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean mScanning = false;//variable to know if I am currently scanning or not
 
-    private BluetoothLeService bluetoothLeService = new BluetoothLeService();
+    private BluetoothLeService bluetoothLeService;
 
 
     /***        UI variables        ****/
@@ -199,8 +200,11 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void connectToDevice(BluetoothDevice device){
-        bluetoothLeService.connectToDevice(getApplicationContext(),device);
+
         goToCommandView();
+        TextView tv = findViewById(R.id.txt_viw);
+        bluetoothLeService = new BluetoothLeService(tv, this);
+        bluetoothLeService.connectToDevice(getApplicationContext(),device);
     }
 
     /***********            UI              **********/
